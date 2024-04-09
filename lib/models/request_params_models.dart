@@ -1,7 +1,7 @@
-class RequestParamsHq {
-  String? code;
-  String? date;
+class RequestParamsAiRecord {
+  final String coinName;
+  final int id;
 
-  RequestParamsHq({this.code, this.date});
+  RequestParamsAiRecord({required this.coinName, required this.id});
 
 }

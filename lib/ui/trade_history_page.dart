@@ -32,7 +32,7 @@ class TradeHistoryPage extends HookConsumerWidget {
           }
         });
         list.sort((a, b) =>
-            a.time.millisecondsSinceEpoch - b.time.millisecondsSinceEpoch);
+            b.time.millisecondsSinceEpoch - a.time.millisecondsSinceEpoch);
         return ListView.builder(
           itemBuilder: (BuildContext context, int index) {
             return ItemTradeHistory(item: list[index]);

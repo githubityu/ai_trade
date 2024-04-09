@@ -1,3 +1,4 @@
+import 'package:ai_trade/models/coin_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -55,6 +56,7 @@ class Constants {
   static const String FEE = "100";
   static const String U = "USD";
   static const bool isCenterTitle = true;
+
 
   static const String webUrl4 =
       'http://xjp-user-api.t.phcer.com/hk_api/api/comm/findServiceNotice?language=en&id=1';

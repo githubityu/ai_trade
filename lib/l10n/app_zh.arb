@@ -1,0 +1,9 @@
+{
+  "app_name": "我是 flutter admin template",
+  "language": "語言",
+  "current_position_data": "当前持仓数据",
+    "history_position_data": "历史持仓数据",
+    "save_success": "保存成功",
+    "save": "保存",
+  "setting": "设置"
+}

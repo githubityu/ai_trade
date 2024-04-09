@@ -22,6 +22,7 @@ extension CancelTokenX on Ref {
 }
 
 extension BuildContextExtension on BuildContext {
+  AppLocalizations? get L => AppLocalizations.of(this);
   OtherTheme get extensions => OtherTheme.of(this);
 }
 

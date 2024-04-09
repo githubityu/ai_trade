@@ -10,6 +10,7 @@ import '../local/constants.dart';
 import '../providers/export_providers.dart';
 
 class ShowUtils {
+  static final _priceMap = <String,dynamic>{};
   static String showSafeString(String? data) {
     return data ?? '';
   }
@@ -60,15 +61,25 @@ class ShowUtils {
     return value.formatWith(NumberFormat("#.##"));
   }
 
-  static String toPercent(Decimal value,{bool isMul = true}){
-    return "${ShowUtils.removeInvalidZeros(value*d(isMul?"100":"1"))}%";
+  static String toPercent(Decimal? value,{bool isMul = true}){
+    if(value==null) return "0%";
+    return "${ShowUtils.roundHalfDown((value*d(isMul?"100":"1")).toDouble())}%";
   }
 
-  static String withU(dynamic num){
+
+  static String roundHalfDown(double value, {int decimalPlaces = 2}) {
+    // final double scale = math.pow(10, decimalPlaces).toDouble();
+    // final double scaledValue = value.toDouble() * scale;
+    // final d = scaledValue.truncate() / scale;
+    return value.toDouble().toStringAsFixed(decimalPlaces);
+  }
+
+  static String withU(dynamic num,{bool isRemove = true}){
+    if(num==null) return "";
     if(num is Decimal){
-      return "${removeInvalidZeros(num)} ${Constants.U}";
+      return "${isRemove?roundHalfDown(num.toDouble()):num.toDouble()} ${Constants.U}";
     }else{
-      return "${removeInvalidZeros(d("$num"))} ${Constants.U}";
+      return "${isRemove?roundHalfDown(d("$num").toDouble()):d("$num")} ${Constants.U}";
     }
   }
 
@@ -76,6 +87,19 @@ class ShowUtils {
     final key = isBuyFee ? Constants.buyFee : Constants.sellFee;
     return SpUtil.getString(key, defValue: "0.1");
   }
+
+
+  static void setPrice(String key,dynamic value){
+    _priceMap[key.toUpperCase()] = value;
+  }
+  static String getPrice(String key){
+    final value = _priceMap[key.toUpperCase()];
+    if(value!=null&&AppUtils.isNumeric("$value")){
+       return "$value";
+    }
+    return "1";
+  }
+
 
 
   static ThemeMode getThemeMode() {

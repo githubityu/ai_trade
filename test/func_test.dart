@@ -20,4 +20,7 @@ void main() {
     final rate = ((d("70000")-d("69000"))/d("69000")).toDecimal(scaleOnInfinitePrecision: 3);
     print("rate=${rate.toDouble()}");
   });
+
+
+
 }

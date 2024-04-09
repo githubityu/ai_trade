@@ -6,7 +6,7 @@ part of 'coin_riverpod.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$buyListHash() => r'0d9ee67f0d2e918333dddfc5159b4dda10b392f9';
+String _$buyListHash() => r'83a1177654e33ea0d4603bf31f4e93c14b01a549';
 
 /// See also [buyList].
 @ProviderFor(buyList)
@@ -20,7 +20,7 @@ final buyListProvider = AutoDisposeFutureProvider<List<CoinBuyModel>?>.internal(
 );
 
 typedef BuyListRef = AutoDisposeFutureProviderRef<List<CoinBuyModel>?>;
-String _$aiModelListHash() => r'c4cbcd8a78b479a53b2d1c84afd17e9c16133f52';
+String _$aiModelListHash() => r'2dc3aca01cbb40ae115b39f60b3b0738580afa1d';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -54,10 +54,10 @@ class AiModelListFamily extends Family<AsyncValue<List<CoinSellAiModel>?>> {
 
   /// See also [aiModelList].
   AiModelListProvider call(
-    String coinName,
+    int id,
   ) {
     return AiModelListProvider(
-      coinName,
+      id,
     );
   }
 
@@ -66,7 +66,7 @@ class AiModelListFamily extends Family<AsyncValue<List<CoinSellAiModel>?>> {
     covariant AiModelListProvider provider,
   ) {
     return call(
-      provider.coinName,
+      provider.id,
     );
   }
 
@@ -90,11 +90,11 @@ class AiModelListProvider
     extends AutoDisposeFutureProvider<List<CoinSellAiModel>?> {
   /// See also [aiModelList].
   AiModelListProvider(
-    String coinName,
+    int id,
   ) : this._internal(
           (ref) => aiModelList(
             ref as AiModelListRef,
-            coinName,
+            id,
           ),
           from: aiModelListProvider,
           name: r'aiModelListProvider',
@@ -105,7 +105,7 @@ class AiModelListProvider
           dependencies: AiModelListFamily._dependencies,
           allTransitiveDependencies:
               AiModelListFamily._allTransitiveDependencies,
-          coinName: coinName,
+          id: id,
         );
 
   AiModelListProvider._internal(
@@ -115,10 +115,10 @@ class AiModelListProvider
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.coinName,
+    required this.id,
   }) : super.internal();
 
-  final String coinName;
+  final int id;
 
   @override
   Override overrideWith(
@@ -133,7 +133,7 @@ class AiModelListProvider
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        coinName: coinName,
+        id: id,
       ),
     );
   }
@@ -145,21 +145,21 @@ class AiModelListProvider
 
   @override
   bool operator ==(Object other) {
-    return other is AiModelListProvider && other.coinName == coinName;
+    return other is AiModelListProvider && other.id == id;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, coinName.hashCode);
+    hash = _SystemHash.combine(hash, id.hashCode);
 
     return _SystemHash.finish(hash);
   }
 }
 
 mixin AiModelListRef on AutoDisposeFutureProviderRef<List<CoinSellAiModel>?> {
-  /// The parameter `coinName` of this provider.
-  String get coinName;
+  /// The parameter `id` of this provider.
+  int get id;
 }
 
 class _AiModelListProviderElement
@@ -168,7 +168,41 @@ class _AiModelListProviderElement
   _AiModelListProviderElement(super.provider);
 
   @override
-  String get coinName => (origin as AiModelListProvider).coinName;
+  int get id => (origin as AiModelListProvider).id;
 }
+
+String _$findInputCostModelHash() =>
+    r'590ef53dc4860023ba005ad3c56762f210fa1d15';
+
+/// See also [findInputCostModel].
+@ProviderFor(findInputCostModel)
+final findInputCostModelProvider =
+    AutoDisposeFutureProvider<List<InputCostModel>>.internal(
+  findInputCostModel,
+  name: r'findInputCostModelProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$findInputCostModelHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef FindInputCostModelRef
+    = AutoDisposeFutureProviderRef<List<InputCostModel>>;
+String _$inputConstTotalHash() => r'0f0dab331f569b6477b6a316c06150d12dafeec0';
+
+/// See also [inputConstTotal].
+@ProviderFor(inputConstTotal)
+final inputConstTotalProvider = AutoDisposeFutureProvider<double>.internal(
+  inputConstTotal,
+  name: r'inputConstTotalProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$inputConstTotalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef InputConstTotalRef = AutoDisposeFutureProviderRef<double>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

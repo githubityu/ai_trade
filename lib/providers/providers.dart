@@ -1,3 +1,4 @@
+import 'package:ai_trade/providers/coin_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:ai_trade/exports.dart';
 
@@ -25,10 +26,16 @@ final loadingStateProvider = Provider<LoadingStateViewModelDialog>(
 final appThemeModeProvider = StateProvider(
       (ref) => ShowUtils.getThemeMode(),
 );
+final appLocationProvider = Provider<Locale>(
+      (ref) {
+    final mode = ref.watch(localChange);
+    return Locale(mode);
+  },
+);
+final localChange = StateProvider((ref) => ShowUtils.getLocation());
 
 
-
-
+final coinTypeProvider = StateProvider((ref) => <String>{});
 
 //
 final appThemeProvider = Provider<ThemeData>(

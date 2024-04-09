@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 
 part 'coin_model.g.dart';
@@ -8,10 +9,29 @@ class CoinBuyModel {
   late int id;
   late String coinName;
   late String buyPrice;
+  @Ignore()
+  String? nowPrice;
   late String buyNum;
   late String balanceNum;
   late DateTime buyTime;
   late List<CoinSellModel> coinSellItems;
+  late List<CoinSellAiModel> sellAiModels;
+}
+@collection
+class CoinInfoModel {
+  @Id()
+  late int id;
+  late String slug;
+  late String symbol;
+  late String? fullname;
+}
+
+@collection
+class  InputCostModel{
+  @Id()
+  late int id;
+  late String total;
+  late DateTime time;
 }
 
 @embedded
@@ -22,10 +42,9 @@ class CoinSellModel {
   late DateTime sellTime;
 }
 
-@collection
+@embedded
 class CoinSellAiModel {
-  @Id()
-  late int id;
+  late int coinBuyId;
   late String coinName;
   late String sellPrice;
   late String sellNum;
@@ -41,4 +60,11 @@ class CoinBuyOrSell {
     return isBuy ? coinBuyModel!.buyTime : coinSellModel!.sellTime;
   }
   CoinBuyOrSell({required this.isBuy, this.coinBuyModel, this.coinSellModel});
+}
+
+
+class PriceData{
+  Decimal totalPrice,inCome;
+  Decimal? inComeRate;
+  PriceData({required this.totalPrice,required this.inCome,this.inComeRate});
 }

@@ -12,6 +12,7 @@ import 'package:ai_trade/ui/common/common_export.dart'
     deferred as common_export;
 import 'package:ai_trade/ui/main_page.dart';
 
+import '../ui/input_cost_page.dart';
 import 'export_route.dart';
 import 'my_nav_observer.dart';
 
@@ -29,6 +30,7 @@ class RoutePath {
   static const String aiModelHistoryPage = '/aiModelHistoryPage';
   static const String aiModelPage = '/aiModelPage';
   static const String updateFeePage = '/updateFeePage';
+  static const String inputConstPage = '/inputConstPage';
 
   static const List<String> needLoginPages = [];
 }
@@ -64,10 +66,15 @@ final GoRouter goRouter = GoRouter(
             return const TradeHistoryPage();
           }),
       GoRoute(
+          path: RoutePath.inputConstPage,
+          builder: (context, state) {
+            return const InputConstPage();
+          }),
+      GoRoute(
           path: RoutePath.aiModelHistoryPage,
           builder: (context, state) {
             return AiModelHistoryPage(
-              coinName: state.extra as String,
+              params: state.extra as RequestParamsAiRecord,
             );
           }),
       GoRoute(

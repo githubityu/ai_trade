@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../local/constants.dart';
 import '../models/export_models.dart';
+import '../providers/coin_riverpod.dart';
 import 'buy_page.dart';
 
 class SellPage extends HookWidget {
@@ -24,7 +25,6 @@ class SellPage extends HookWidget {
     final coinNumC = useTextEditingController();
     final sellU = useValueNotifier(0.0);
     final sellNum = useRef("0.0");
-
     useEffect(() {
       coinNameC.text = coinBuyModel.coinName;
       void callBack() {
@@ -36,7 +36,6 @@ class SellPage extends HookWidget {
           "${sellU.value}".log();
         }
       }
-
       coinPriceC.addListener(callBack);
       coinNumC.addListener(callBack);
       return () {
@@ -55,27 +54,47 @@ class SellPage extends HookWidget {
       appBar: AppBar(
         title: const Text('卖出'),
         actions: [
-          ElevatedButton(
-            onPressed: () {
-              IsarUtils.write((isar){
-                CoinSellModel coinSellModel = CoinSellModel()
-                  ..coinBuyId = coinBuyModel.id
-                  ..sellNum = sellNum.value
-                  ..sellPrice = coinPriceC.text
-                  ..sellTime = DateTime.now();
-                coinBuyModel.coinSellItems= [...coinBuyModel.coinSellItems,coinSellModel];
-                coinBuyModel.balanceNum = (d(coinBuyModel.balanceNum) - d(sellNum.value)).toString();
-                isar.coinBuyModels.put(coinBuyModel);
-                Utils.showToast("保存成功");
-                userAppRouter().pop();
-              });
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: ColorName.themeColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
-            child: const Text("保存"),
+          Consumer(
+            builder: (context,ref,child) {
+              return ElevatedButton(
+                onPressed: () {
+                  final coinName = coinNameC.text;
+                  if (coinName.isEmpty) {
+                    Utils.showToast("币名不能为空");
+                    return;
+                  }
+                  final  sellPrice = coinPriceC.text;
+                  if (sellPrice.isEmpty) {
+                    Utils.showToast("卖出价格不能为空");
+                    return;
+                  }
+                  final coinSellNum = coinNumC.text;
+                  if (coinSellNum.isEmpty) {
+                    Utils.showToast("卖出数量不能为空");
+                    return;
+                  }
+                  IsarUtils.write((isar){
+                    CoinSellModel coinSellModel = CoinSellModel()
+                      ..coinBuyId = coinBuyModel.id
+                      ..sellNum = sellNum.value
+                      ..sellPrice = coinPriceC.text
+                      ..sellTime = DateTime.now();
+                    coinBuyModel.coinSellItems= [...coinBuyModel.coinSellItems,coinSellModel];
+                    coinBuyModel.balanceNum = (d(coinBuyModel.balanceNum) - d(sellNum.value)).toString();
+                    isar.coinBuyModels.put(coinBuyModel);
+                    Utils.showToast("${context.L?.save_success}");
+                    ref.invalidate(buyListProvider);
+                    userAppRouter().pop();
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorName.themeColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                child:  Text("${context.L?.save}"),
+              );
+            }
           )
         ],
       ),
@@ -99,7 +118,9 @@ class SellPage extends HookWidget {
                   title: "卖出价格",
                   suffix: Constants.U,
                 ),
-                ItemEditContent(controller: coinNumC, title: "卖出数量"),
+                ItemEditContent(controller: coinNumC, title: "卖出数量",onTap: (){
+                  coinNumC.text = coinBuyModel.balanceNum;
+                },suffix: "全部",inputFormatters: [MinMaxValueFormatter(minValue: 0, maxValue: coinBuyModel.balanceNum.toDoubleOrDefault(defaultValue: 0))],),
                 FooterSellPage(
                     sellU: sellU, sellNum: sellNum, resultRate: resultRate)
               ],

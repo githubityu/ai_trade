@@ -50,3 +50,55 @@ class ObjList {
       ]);
 }
 
+
+
+class CoinPriceModel{
+  final double u;
+  final String S;
+  CoinPriceModel({
+    required this.u,
+    required this.S,
+  });
+
+  factory CoinPriceModel.fromJson(Map json) {
+    return CoinPriceModel(
+      u: json['u'],
+      S: json['S'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'u': u,
+      'S': S,
+    };
+  }
+}
+
+
+// class CoinPriceModel{
+//   final String slug;
+//   final String symbol;
+//   final String? fullname;
+//   CoinPriceModel({
+//     required this.slug,
+//     required this.symbol,
+//     this.fullname,
+//   });
+//
+//   factory CoinPriceModel.fromJson(Map json) {
+//     return CoinPriceModel(
+//       slug: json['slug'],
+//       symbol: json['symbol'],
+//       fullname: json['fullname'],
+//     );
+//   }
+//
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'slug': slug,
+//       'symbol': symbol,
+//       'fullname': fullname,
+//     };
+//   }
+// }

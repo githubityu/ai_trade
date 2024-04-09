@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'ai_model_page.dart';
 
 class AiModelHistoryPage extends HookConsumerWidget {
-  final String coinName;
-  const AiModelHistoryPage({required this.coinName, super.key});
+  final RequestParamsAiRecord params;
+  const AiModelHistoryPage({required this.params, super.key});
 
   @override
   Widget build(BuildContext context,ref) {
@@ -27,7 +27,7 @@ class AiModelHistoryPage extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ai Model记录'),
+        title:  Text('Ai Model(${params.coinName})记录'),
         bottom: TabBar(
           controller: tabC,
           tabs: tabs.value.map((e) => Tab(text: e,)).toList(),
@@ -40,12 +40,13 @@ class AiModelHistoryPage extends HookConsumerWidget {
             children: titles.value.map((e) => Expanded(child: Center(child: Text(e,style: context.textTheme.bodySmall,)))).toList(),
           ),
           Gap.v(10),
-          Expanded(child: AsyncValueWidget(ref.watch(aiModelListProvider(coinName)),asyncValueBuilder: (data) {
+          Expanded(child: AsyncValueWidget(ref.watch(aiModelListProvider(params.id)),asyncValueBuilder: (data) {
             final list = data??[];
             final size = list.length;
             final newList = List.generate(5, (index) => index<size?list[index]:null);
               return TabBarView(
                   controller: tabC,
+                  physics: NeverScrollableScrollPhysics(),
                   children: newList.map((e) => AiModelHistoryPageItem(item: e)).toList());
           },))
         ],
@@ -64,13 +65,16 @@ class AiModelHistoryPageItem extends HookWidget {
   Widget build(BuildContext context) {
     useAutomaticKeepAlive();
     if(item==null){
-      return Center(child: Text("暂无数据"),);
+      return const Center(child: Text("暂无数据"),);
     }
-    return ListView.builder(
-      itemBuilder: (BuildContext context, int index) {
-        return ItemAiModelPage(item: item!,index: index,);
-      },
-      itemCount: 20,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          children: List.generate(20, (index) => ItemAiModelPage(item: item!,index: index,)),
+        ),
+      ),
     );
   }
 }

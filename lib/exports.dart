@@ -7,3 +7,4 @@ export 'package:ityu_tools/exports.dart';
 export 'package:logger/logger.dart';
 export 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 export 'package:collection/collection.dart';
+export 'package:flutter_gen/gen_l10n/app_localizations.dart';

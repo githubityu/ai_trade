@@ -3,3 +3,4 @@ export 'show_utils.dart';
 export 'extension/hook_ext.dart';
 export 'extension/simple_extension.dart';
 export 'isar_utils.dart';
+export 'text_formatter_utils.dart';

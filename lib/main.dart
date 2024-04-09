@@ -27,6 +27,9 @@ class MyApp extends HookConsumerWidget {
       debugShowCheckedModeBanner: true,
       theme: theme,
       darkTheme: AppTheme.darkThemeData,
+      locale: ref.watch(appLocationProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: themeMode,
       title: 'AI Trade',
       builder: FlutterSmartDialog.init(),
@@ -34,4 +37,3 @@ class MyApp extends HookConsumerWidget {
     );
   }
 }
-

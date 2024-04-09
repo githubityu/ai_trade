@@ -2,6 +2,7 @@ import 'package:ai_trade/exports.dart';
 import 'package:ai_trade/util/export_util.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../gen/export_gen.dart';
 import '../local/constants.dart';
@@ -48,15 +49,18 @@ class AiModelPage extends HookConsumerWidget {
             onPressed: () {
               if(notifyData.value){
                 IsarUtils.write((isar){
-                  coinSellAiModel.value.id = isar.coinSellAiModels.autoIncrement();
-                  isar.coinSellAiModels.put(coinSellAiModel.value);
-                  Utils.showToast("保存成功");
+                  final newList = coinBuyModel.sellAiModels.length>4?coinBuyModel.sellAiModels.sublist(0,4):coinBuyModel.sellAiModels;
+                  coinBuyModel.sellAiModels = [coinSellAiModel.value,...newList];
+                  isar.coinBuyModels.put(coinBuyModel);
+                  Utils.showToast("${context.L?.save_success}");
                   userAppRouter().pop();
                 });
+              }else{
+                Utils.showToast("建立卖出模型");
               }
             },
             style: getStyle(ColorName.themeColor),
-            child: const Text("保存"),
+            child:  Text("${context.L?.save}"),
           )
         ],
       ),
@@ -78,7 +82,9 @@ class AiModelPage extends HookConsumerWidget {
                       title: "卖出价格",
                       suffix: Constants.U,
                     ),
-                    ItemEditContent(controller: coinNumC, title: "卖出数量"),
+                    ItemEditContent(controller: coinNumC, title: "卖出数量" ,suffix: "全部",onTap: (){
+                      coinNumC.text = coinBuyModel.balanceNum;
+                    },),
                     ItemEditContent(
                       controller: upPriceC,
                       title: "涨幅价格",
@@ -94,7 +100,6 @@ class AiModelPage extends HookConsumerWidget {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-
                             final  sellPrice = coinPriceC.text;
                             if (sellPrice.isEmpty) {
                               Utils.showToast("卖出价格不能为空");
@@ -118,6 +123,7 @@ class AiModelPage extends HookConsumerWidget {
                               coinSellAiModel.value
                                 ..sellPrice = coinPriceC.text
                                 ..coinName = coinBuyModel.coinName
+                                ..coinBuyId = coinBuyModel.id
                                 ..increasePrice = upPriceC.text
                                 ..sellNum = coinNumC.text
                                 ..buyPrice = downPriceC.text;
@@ -157,11 +163,14 @@ class AiModelPage extends HookConsumerWidget {
             Expanded(
                 child: ValueListenableBuilder(
                   builder: (context,v,child) {
-                    return v?ListView.builder(
-                      itemBuilder: (BuildContext context, int index) {
-                        return ItemAiModelPage(item: coinSellAiModel.value,index: index,);
-                      },
-                      itemCount: 20,
+                    return v?SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Column(
+                          children: List.generate(20, (index) => ItemAiModelPage(item: coinSellAiModel.value,index: index,)),
+                        ),
+                      ),
                     ):const SizedBox();
                   }, valueListenable: notifyData,
                 ))
@@ -199,26 +208,42 @@ class ItemAiModelPage extends StatelessWidget {
     AppUtils.calculateRate(item.buyPrice, sellPrice.toString(), sellNum);
 
     ///可以买多少币
-    final increaseNum = ShowUtils.removeInvalidZeros(
-        (rate.rateNum / d(item.buyPrice))
-            .toDecimal(scaleOnInfinitePrecision: 4));
+    final increaseNum = (rate.rateNum / d(item.buyPrice))
+        .toDecimal(scaleOnInfinitePrecision: 4);
 
-    return [sellPrice.toString(), sellNum,sellFee.feeNum.toString(),  sellU.toString(), rate.rateNum.toString(),ShowUtils.toPercent(rate.rate), increaseNum.toString()];
+    return [sellPrice.toString(), sellNum,sellFee.feeNum.toStringAsFixed(1),  sellU.toStringAsFixed(1), rate.rateNum.toStringAsFixed(1),ShowUtils.toPercent(rate.rate), increaseNum.toString()];
+  }
+
+  double getWidth(index) {
+    return switch(index){
+      5 => 80,
+      1 => 40,
+      _=> 60
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: calculateSellPrice().map((e) => Expanded(child: Center(child: Text(e,style: context.textTheme.bodySmall?.copyWith(
-            color: Colors.black
-          ),)))).toList(),
-        ),
-        Divider(
-          height: 5,
-        )
-      ],
+    return SizedBox(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: calculateSellPrice().mapIndexed((index,e) => SizedBox(
+              width: getWidth(index),
+              child: Center(
+                child: Text(e,style: context.textTheme.bodySmall?.copyWith(
+                  color: Colors.black
+                ),),
+              ),
+            )).toList(),
+          ),
+          const Divider(
+            height: 5,
+          )
+        ],
+      ),
     );
   }
 }

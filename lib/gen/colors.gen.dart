@@ -28,5 +28,6 @@ class ColorName {
   static const Color contentColorCyan = Color(0xFF50E4FF);
   static const Color contentColorBlue = Color(0xff4061E4);
   static const Color textColor9494AD = Color(0xff9494AD);
+  static const Color textColor525298 = Color(0xff525298);
   static const Color borderColor = Colors.white54;
 }

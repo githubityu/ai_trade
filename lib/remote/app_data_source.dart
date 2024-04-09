@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ai_trade/models/export_models.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:ai_trade/exports.dart';
 
@@ -29,5 +30,9 @@ abstract class AppDataSource {
       @Queries() Map<String, dynamic> map, @CancelRequest() cancelRequest);
   @GET('views')
   Future<ResponseBodyMt> views(
+      @Queries() Map<String, dynamic> map, @CancelRequest() cancelRequest);
+
+  @GET('https://data.mifengcha.com/api/v3/price')
+  Future<List<CoinPriceModel>> priceS(
       @Queries() Map<String, dynamic> map, @CancelRequest() cancelRequest);
 }

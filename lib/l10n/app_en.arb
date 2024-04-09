@@ -1,0 +1,9 @@
+{
+  "app_name": "I am flutter admin template",
+  "language": "Language",
+  "current_position_data": "Current data",
+  "history_position_data": "History data",
+  "save_success": "Save_success",
+      "save": "Save",
+  "setting": "Setting"
+}

@@ -1,8 +1,8 @@
 import 'package:ai_trade/gen/assets.gen.dart';
 import 'package:ai_trade/gen/colors.gen.dart';
+import 'package:ai_trade/local/constants.dart';
 import 'package:ai_trade/providers/coin_riverpod.dart';
 import 'package:ai_trade/route/app_router.dart';
-import 'package:ai_trade/util/app_utils.dart';
 import 'package:ai_trade/util/export_util.dart';
 import 'package:ai_trade/util/show_utils.dart';
 import 'package:ai_trade/widgets/asyncvalue_widget.dart';
@@ -23,6 +23,7 @@ class MainPage extends HookConsumerWidget {
         leading: IconButton(
           onPressed: () {
             userAppRouter().push(RoutePath.buyPage);
+
           },
           icon: ImageIcon(MyAssets.images.icAdd.provider()),
         ),
@@ -41,55 +42,62 @@ class MainPage extends HookConsumerWidget {
           ),
         ],
       ),
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return [
-            SliverPersistentHeader(
-                delegate: StickyChildDelegate(
-                    child: const PreferredSize(
-                        preferredSize: Size.fromHeight(80),
-                        child: MainHeader()))),
-          ];
-        },
-        body: Column(
-          children: [
-            TabBar(
-              controller: tabController,
-              tabs: const [
-                Tab(text: "当前持仓数据"),
-                Tab(text: "历史持仓数据"),
-              ],
-            ),
-            Expanded(
-              child: AsyncValueWidget(
-                ref.watch(buyListProvider),
-                asyncValueBuilder: (List<CoinBuyModel?>? items) {
-                  final list = (items ?? []).whereNotNull().toList();
-                  final sellList = list.expand((e) => e.coinSellItems).toList();
-                  return TabBarView(
+      body: FutureBuilder(
+        future: IsarUtils.insertCoinInfoModel(),
+        builder: (context, snapshot) {
+          return AsyncValueWidget(ref.watch(buyListProvider), asyncValueBuilder: (items){
+            final list = (items ?? []).whereNotNull().toList();
+            final sellList = list.expand((e) => e.coinSellItems).toList();
+            final buyList = list
+                .where((e) =>
+            e.balanceNum.toDoubleOrDefault(defaultValue: 0) > 0)
+                .toList();
+            return RefreshNestedWidget(
+              onRefresh: ()=>ref.refresh(buyListProvider.future),
+              headerSliver: (BuildContext context, bool innerBoxIsScrolled) {
+                return [
+                  SliverPersistentHeader(
+                      delegate: StickyChildDelegate(
+                          child: const PreferredSize(
+                              preferredSize: Size.fromHeight(80),
+                              child: MainHeader()))),
+                ];
+              },
+              child: Column(
+                children: [
+                  TabBar(
                     controller: tabController,
-                    children: [
-                      BuyBodyList(items: list),
-                      SellBodyList(
-                        items: sellList,
-                      )
+                    tabs:  [
+                      Tab(text: "${context.L?.current_position_data}"),
+                      Tab(text: "${context.L?.history_position_data}"),
                     ],
-                  );
-                },
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: tabController,
+                      children: [
+                        BuyBodyList(items: buyList),
+                        SellBodyList(
+                          items: sellList,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          });
+        }
       ),
     );
   }
 }
 
-class MainHeader extends StatelessWidget {
+class MainHeader extends ConsumerWidget {
   const MainHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,ref) {
     final style1 =
         context.textTheme.bodySmall?.copyWith(color: ColorName.textColor9494AD);
     final style2 = context.textTheme.bodyLarge
@@ -100,34 +108,40 @@ class MainHeader extends StatelessWidget {
       color: ColorName.themeColor.withOpacity(0.1),
       child: Padding(
         padding: const EdgeInsets.all(15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Text.rich(
-              TextSpan(children: [
-                TextSpan(text: ShowUtils.showLineStr("涨跌幅"), style: style1),
-                widgetPadding,
-                TextSpan(text: "1%", style: style2)
-              ]),
-              textAlign: TextAlign.center,
-            ),
-            Text.rich(
-              TextSpan(children: [
-                TextSpan(text: ShowUtils.showLineStr("总资产"), style: style1),
-                widgetPadding,
-                TextSpan(text: "1%", style: style2)
-              ]),
-              textAlign: TextAlign.center,
-            ),
-            Text.rich(
-              TextSpan(children: [
-                TextSpan(text: ShowUtils.showLineStr("利润"), style: style1),
-                widgetPadding,
-                TextSpan(text: "200", style: style2)
-              ]),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        child: AsyncValueWidget(
+          ref.watch(buyListProvider),
+          asyncValueBuilder: (items){
+            final priceData = AppUtils.calculateHearData(items??[]);
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: ShowUtils.showLineStr("涨跌幅"), style: style1),
+                    widgetPadding,
+                    TextSpan(text: ShowUtils.toPercent(priceData.inComeRate), style: style2)
+                  ]),
+                  textAlign: TextAlign.center,
+                ),
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: ShowUtils.showLineStr("总资产"), style: style1),
+                    widgetPadding,
+                    TextSpan(text: ShowUtils.withU(priceData.totalPrice), style: style2)
+                  ]),
+                  textAlign: TextAlign.center,
+                ),
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: ShowUtils.showLineStr("利润"), style: style1),
+                    widgetPadding,
+                    TextSpan(text: ShowUtils.withU(priceData.inCome), style: style2)
+                  ]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -176,13 +190,12 @@ class SellBodyList extends HookWidget {
 
 class ItemBuyBody extends StatelessWidget {
   final CoinBuyModel item;
-
   const ItemBuyBody({super.key, required this.item});
-
   @override
   Widget build(BuildContext context) {
     final leftStyle = context.textTheme.bodySmall
         ?.copyWith(color: Colors.black.withOpacity(0.5));
+     final rateData = AppUtils.calculateRate(item.buyPrice, ShowUtils.getPrice(item.coinName), item.balanceNum);
     ///获取当前价格
     return LayoutBuilder(builder: (context, constraints) {
       final width = (Screens.width - 80) / 2;
@@ -209,11 +222,12 @@ class ItemBuyBody extends StatelessWidget {
               child: Column(
                 children: [
                   ItemRow(
-                    leftStyle: context.textTheme.bodyLarge,
+                    leftStyle: context.textTheme.bodySmall?.copyWith(color: Colors.black),
+                    rightStyle: context.textTheme.bodyMedium,
                     itemRowData: (
                       item.coinName,
-                      item.buyNum,
-                      "100",
+                      item.balanceNum,
+                      ShowUtils.roundHalfDown(rateData.rateNum.toDouble()),
                       SizedBox(
                         height: 20,
                         child: IconButton(
@@ -231,14 +245,31 @@ class ItemBuyBody extends StatelessWidget {
                     thickness: 1,
                     height: 1,
                   ),
-                   ItemRow(
-                    itemRowData: ("当前价格", ShowUtils.withU("4500"), "+ 5.03245%", null),
+                  ItemRow(
+                    rightStyle: context.textTheme.bodySmall?.copyWith(color: Colors.black),
+                    itemRowData: (
+                      "当前价格",
+                      ShowUtils.withU(ShowUtils.getPrice(item.coinName)),
+                      ShowUtils.toPercent(rateData.rate),
+                      null
+                    ),
                   ),
-                   ItemRow(
-                    itemRowData: ("买入价格", ShowUtils.withU(item.buyPrice), null, null),
+                  ItemRow(
+                    itemRowData: (
+                      "买入价格",
+                      ShowUtils.withU(item.buyPrice, isRemove: false),
+                      null,
+                      null
+                    ),
                   ),
-                   ItemRow(
-                    itemRowData: ("买入总额", ShowUtils.withU(AppUtils.calculateU(item.buyPrice,item.buyNum)), null, null),
+                  ItemRow(
+                    itemRowData: (
+                      "买入总额",
+                      ShowUtils.withU(
+                          AppUtils.calculateU(item.buyPrice, item.buyNum)),
+                      null,
+                      null
+                    ),
                   ),
                 ],
               ),
@@ -254,7 +285,7 @@ class ItemBuyBody extends StatelessWidget {
                   width: width,
                   child: ElevatedButton(
                     onPressed: () {
-                      userAppRouter().push(RoutePath.aiModelPage,extra: item);
+                      userAppRouter().push(RoutePath.aiModelPage, extra: item);
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: ColorName.themeColor,
@@ -267,7 +298,7 @@ class ItemBuyBody extends StatelessWidget {
                   width: width,
                   child: ElevatedButton(
                     onPressed: () {
-                      userAppRouter().push(RoutePath.sellPage,extra: item);
+                      userAppRouter().push(RoutePath.sellPage, extra: item);
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -287,7 +318,6 @@ class ItemBuyBody extends StatelessWidget {
 class ItemSellBody extends StatelessWidget {
   final CoinSellModel item;
 
-
   const ItemSellBody({super.key, required this.item});
 
   @override
@@ -295,9 +325,10 @@ class ItemSellBody extends StatelessWidget {
     final buyModel = IsarUtils.getById(item.coinBuyId);
     final leftStyle = context.textTheme.bodySmall
         ?.copyWith(color: Colors.black.withOpacity(0.5));
-    final sellU =  AppUtils.calculateU(item.sellPrice, item.sellNum);
-    final feeU =  AppUtils.calculateFee(sellU.toString());
-    final feeRate = AppUtils.calculateRate(buyModel!.buyPrice,item.sellPrice,item.sellNum);
+    final sellU = AppUtils.calculateU(item.sellPrice, item.sellNum);
+    final feeU = AppUtils.calculateFee(sellU.toString());
+    final feeRate = AppUtils.calculateRate(
+        buyModel!.buyPrice, item.sellPrice, item.sellNum);
     return LayoutBuilder(builder: (context, constraints) {
       final width = (Screens.width - 80) / 2;
       return Column(
@@ -323,7 +354,8 @@ class ItemSellBody extends StatelessWidget {
               child: Column(
                 children: [
                   ItemRow(
-                    leftStyle: context.textTheme.bodyLarge,
+                    leftStyle: context.textTheme.bodySmall?.copyWith(color: Colors.black),
+                    rightStyle: context.textTheme.bodyMedium,
                     itemRowData: (
                       "卖出${buyModel.coinName}",
                       (item.sellNum),
@@ -335,20 +367,40 @@ class ItemSellBody extends StatelessWidget {
                     thickness: 1,
                     height: 1,
                   ),
-                   ItemRow(
-                    itemRowData: ("卖出价格", ShowUtils.withU(item.sellPrice), null, null),
+                  ItemRow(
+                    itemRowData: (
+                      "卖出价格",
+                      ShowUtils.withU(item.sellPrice),
+                      null,
+                      null
+                    ),
                   ),
-                   ItemRow(
+                  ItemRow(
                     itemRowData: ("卖出总额", ShowUtils.withU(sellU), null, null),
                   ),
                   ItemRow(
-                    itemRowData: ("手续费", ShowUtils.withU(feeU.feeNum), null, null),
+                    itemRowData: (
+                      "手续费",
+                      ShowUtils.withU(feeU.feeNum),
+                      null,
+                      null
+                    ),
                   ),
                   ItemRow(
-                    itemRowData: ("盈利", ShowUtils.withU(feeRate.rateNum), null, null),
+                    itemRowData: (
+                      "盈利",
+                      ShowUtils.withU(feeRate.rateNum),
+                      null,
+                      null
+                    ),
                   ),
                   ItemRow(
-                    itemRowData: ("收益率", ShowUtils.toPercent(feeRate.rate), null, null),
+                    itemRowData: (
+                      "收益率",
+                      ShowUtils.toPercent(feeRate.rate),
+                      null,
+                      null
+                    ),
                   ),
                 ],
               ),
@@ -364,7 +416,9 @@ class ItemSellBody extends StatelessWidget {
                   width: width,
                   child: ElevatedButton(
                     onPressed: () {
-                      userAppRouter().push(RoutePath.aiModelHistoryPage,extra: buyModel.coinName);
+                      userAppRouter().push(RoutePath.aiModelHistoryPage,
+                          extra: RequestParamsAiRecord(
+                              coinName: buyModel.coinName, id: buyModel.id));
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: ColorName.themeColor.withOpacity(0.3),
@@ -381,11 +435,12 @@ class ItemSellBody extends StatelessWidget {
   }
 }
 
+
 class ItemRow extends StatelessWidget {
   final (String, String, String?, Widget?) itemRowData;
-  final TextStyle? leftStyle;
+  final TextStyle? leftStyle,rightStyle;
 
-  const ItemRow({super.key, required this.itemRowData, this.leftStyle});
+  const ItemRow({super.key, required this.itemRowData, this.leftStyle,this.rightStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -397,16 +452,22 @@ class ItemRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+              flex: 2,
               child: Text(
             itemRowData.$1,
             style: leftStyle2,
           )),
           Expanded(
-              child: Text(
-            itemRowData.$2,
-            style: leftStyle2,
-          )),
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 0),
+                child: Text(
+                  itemRowData.$2,
+                  style: rightStyle??leftStyle2,
+                ),
+              )),
           Expanded(
+              flex: 2,
               child: itemRowData.$3 != null
                   ? Text(
                       "${itemRowData.$3}",
@@ -416,7 +477,7 @@ class ItemRow extends StatelessWidget {
           Expanded(
               child: itemRowData.$4 != null
                   ? Align(
-                      alignment: Alignment.centerRight,
+                      alignment: Alignment.centerLeft,
                       child: itemRowData.$4!,
                     )
                   : const SizedBox.shrink()),
